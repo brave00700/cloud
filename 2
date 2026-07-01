@@ -1,66 +1,103 @@
-Program 2: Create Storage Space Using Amazon S3 (GUI Only)
-Aim
+Yes. We can complete **Program 2 – Create Storage Space using AWS S3 Services** **entirely using the AWS Management Console (GUI)**. Since you said **don't use CLI**, I'll skip all AWS CLI installation and commands.
+
+---
+
+# Program 2: Create Storage Space Using Amazon S3 (GUI Only)
+
+## Aim
 
 To create an Amazon S3 bucket, upload files, organize data, configure permissions, and access files using CloudFront through the AWS Management Console.
 
-Step 1: Login to AWS
-Open your browser.
-Visit https://aws.amazon.com/
-Click Sign In to Console.
-Enter your AWS account credentials.
-After login, the AWS Management Console opens.
+---
 
-Explanation:
+# Step 1: Login to AWS
+
+1. Open your browser.
+2. Visit **[https://aws.amazon.com/](https://aws.amazon.com/)**
+3. Click **Sign In to Console**.
+4. Enter your AWS account credentials.
+5. After login, the AWS Management Console opens.
+
+**Explanation:**
 The AWS Management Console is a graphical interface used to create and manage AWS services without typing commands.
 
-Step 2: Open Amazon S3
-In the search bar, type S3.
-Click Amazon S3.
+---
 
-Explanation:
-Amazon S3 (Simple Storage Service) is an object storage service where data is stored inside Buckets.
+# Step 2: Open Amazon S3
 
-Step 3: Create an S3 Bucket
-Click Create bucket.
-Select
-Bucket type: General Purpose
-Enter a bucket name.
+1. In the search bar, type **S3**.
+2. Click **Amazon S3**.
+
+**Explanation:**
+Amazon S3 (Simple Storage Service) is an object storage service where data is stored inside **Buckets**.
+
+---
+
+# Step 3: Create an S3 Bucket
+
+1. Click **Create bucket**.
+
+2. Select
+
+* **Bucket type:** General Purpose
+
+3. Enter a bucket name.
 
 Example:
 
+```
 suhas-cloud-storage-2026
+```
 
 The bucket name
 
-must be unique worldwide
-use only lowercase letters
-numbers and hyphens are allowed
-no spaces
-Select Region
+* must be unique worldwide
+* use only lowercase letters
+* numbers and hyphens are allowed
+* no spaces
+
+4. Select Region
 
 Example
 
+```
 Asia Pacific (Mumbai)
 ap-south-1
-Leave Object Ownership
+```
+
+5. Leave **Object Ownership**
+
+```
 ACLs Disabled (Recommended)
-Leave Block Public Access
+```
+
+6. Leave **Block Public Access**
 
 Keep all four check boxes selected.
 
-Leave Bucket Versioning
+7. Leave Bucket Versioning
+
+```
 Disabled
-Leave Default Encryption
+```
+
+8. Leave Default Encryption
+
+```
 Server-side encryption with Amazon S3 managed keys (SSE-S3)
-Click
+```
 
-Create Bucket
+9. Click
 
-Explanation:
+**Create Bucket**
+
+**Explanation:**
 
 A bucket is like a folder in cloud storage where files are stored.
 
-Step 4: Verify Bucket Creation
+---
+
+# Step 4: Verify Bucket Creation
 
 The bucket will appear in the S3 bucket list.
 
@@ -68,85 +105,100 @@ Click the bucket name.
 
 Initially the bucket is empty.
 
-Step 5: Upload Files
+---
+
+# Step 5: Upload Files
 
 Inside the bucket
 
 Click
 
-Upload
+**Upload**
 
 Then
 
-Add Files
+**Add Files**
 
 or
 
-Add Folder
+**Add Folder**
 
 Select
 
 Example
 
+```
 index.html
 
 style.css
 
 image.jpg
+```
 
 Click
 
-Upload
+**Upload**
 
 Wait until the upload is completed.
 
-Click Close.
+Click **Close**.
 
-Explanation
+**Explanation**
 
 Objects are the files stored inside the S3 bucket.
 
-Step 6: View Uploaded Files
+---
+
+# Step 6: View Uploaded Files
 
 Open the bucket.
 
 You should see
 
+```
 index.html
 
 style.css
 
 image.jpg
+```
 
 Click any file.
 
 You can see
 
-Object name
-Size
-Last modified
-Storage class
-Step 7: Create Folder (Optional)
+* Object name
+* Size
+* Last modified
+* Storage class
+
+---
+
+# Step 7: Create Folder (Optional)
 
 Inside bucket
 
 Click
 
-Create Folder
+**Create Folder**
 
 Example
 
+```
 Images
+```
 
 Open the folder.
 
 Upload image files.
 
-Explanation
+**Explanation**
 
 Folders help organize data inside the bucket.
 
-Step 8: Copy Objects Between Buckets (GUI)
+---
+
+# Step 8: Copy Objects Between Buckets (GUI)
 
 If required
 
@@ -158,91 +210,109 @@ Select a file.
 
 Click
 
-Actions
+**Actions**
 
 ↓
 
-Copy
+**Copy**
 
 Open second bucket.
 
 Click
 
-Paste
+**Paste**
 
 The file is copied.
 
-Step 9: Delete Objects
+---
+
+# Step 9: Delete Objects
 
 Select a file.
 
 Click
 
-Delete
+**Delete**
 
 Type
 
+```
 permanently delete
+```
 
 Click
 
-Delete Objects
+**Delete Objects**
 
-Step 10: Enable Static Website Hosting
+---
+
+# Step 10: Enable Static Website Hosting
 
 Open your bucket.
 
 Select
 
-Properties
+**Properties**
 
 Scroll to
 
-Static Website Hosting
+**Static Website Hosting**
 
 Click
 
-Edit
+**Edit**
 
 Choose
 
+```
 Enable
+```
 
 Hosting type
 
+```
 Host a Static Website
+```
 
 Index document
 
+```
 index.html
+```
 
 Error document
 
+```
 error.html
+```
 
 (Optional)
 
 Click
 
-Save Changes
+**Save Changes**
 
-Explanation
+**Explanation**
 
 This makes the bucket capable of hosting a website.
 
-Step 11: Create CloudFront Distribution
+---
+
+# Step 11: Create CloudFront Distribution
 
 Search
 
-CloudFront
+**CloudFront**
 
 Open it.
 
 Click
 
-Create Distribution
+**Create Distribution**
 
-Origin Domain
+---
+
+## Origin Domain
 
 Click inside the Origin field.
 
@@ -250,47 +320,69 @@ Select your S3 bucket.
 
 Example
 
+```
 suhas-cloud-storage-2026
-Origin Access
+```
+
+---
+
+## Origin Access
 
 Choose
 
+```
 Origin Access Control Settings (Recommended)
-Create OAC
+```
+
+---
+
+## Create OAC
 
 Click
 
-Create New OAC
+**Create New OAC**
 
 Leave default values.
 
 Click
 
-Create
+**Create**
 
 The new Origin Access Control will be selected.
 
-Web Application Firewall (WAF)
+---
+
+## Web Application Firewall (WAF)
 
 Choose
 
+```
 Do Not Enable Security Protection
+```
+
+---
 
 Leave all remaining settings as default.
 
 Click
 
-Create Distribution
+**Create Distribution**
 
-Explanation
+---
+
+**Explanation**
 
 CloudFront securely delivers S3 content using Amazon's global network, making websites faster and more secure.
 
-Step 12: Wait for Distribution Deployment
+---
+
+# Step 12: Wait for Distribution Deployment
 
 Status will show
 
+```
 Deploying
+```
 
 Wait around
 
@@ -298,19 +390,29 @@ Wait around
 
 until it changes to
 
+```
 Deployed
-Step 13: Copy CloudFront Domain Name
+```
+
+---
+
+# Step 13: Copy CloudFront Domain Name
 
 Open the CloudFront distribution.
 
 Copy
 
+```
 Distribution Domain Name
 
 Example
 
 d2abcxyz123.cloudfront.net
-Step 14: Update Bucket Policy
+```
+
+---
+
+# Step 14: Update Bucket Policy
 
 Go back to
 
@@ -334,6 +436,7 @@ Edit
 
 Replace the policy with the following template:
 
+```json
 {
   "Version":"2012-10-17",
   "Statement":[
@@ -353,57 +456,109 @@ Replace the policy with the following template:
     }
   ]
 }
+```
 
 Replace
 
+```
 YOUR_BUCKET_NAME
 
 YOUR_ACCOUNT_ID
 
 YOUR_DISTRIBUTION_ID
+```
 
 with your actual values.
 
 Click
 
-Save Changes
+**Save Changes**
 
-Explanation of Bucket Policy
+---
 
-Version
+## Explanation of Bucket Policy
+
+**Version**
 
 Policy language version.
 
-Effect
+**Effect**
 
 Allows access.
 
-Principal
+**Principal**
 
 CloudFront service.
 
-Action
+**Action**
 
 Allows reading objects.
 
-Resource
+**Resource**
 
 Specifies all files inside your bucket.
 
-Condition
+**Condition**
 
 Only your CloudFront distribution can access the bucket.
 
-Step 15: Test Website
+---
+
+# Step 15: Test Website
 
 Open browser.
 
 Paste
 
+```
 https://CloudFront_Domain_Name/index.html
+```
 
 Example
 
+```
 https://d2abcxyz123.cloudfront.net/index.html
+```
 
 Your webpage should open.
+
+---
+
+# Expected Output
+
+* AWS S3 bucket created successfully.
+* Files uploaded into the bucket.
+* Static website hosting enabled.
+* CloudFront distribution created.
+* Bucket policy updated for CloudFront access.
+* Website accessed successfully using the CloudFront URL.
+
+---
+
+# Viva Questions
+
+**1. What is Amazon S3?**
+Amazon S3 is an object storage service used to store and retrieve files securely over the internet.
+
+**2. What is a bucket?**
+A bucket is a container in Amazon S3 that stores objects (files).
+
+**3. What is an object?**
+An object is a file stored inside an S3 bucket along with its metadata.
+
+**4. Why is bucket name globally unique?**
+Because S3 bucket names are shared across all AWS accounts worldwide.
+
+**5. What is Static Website Hosting?**
+It allows an S3 bucket to host HTML, CSS, JavaScript, and other static website files.
+
+**6. What is CloudFront?**
+CloudFront is AWS's Content Delivery Network (CDN) that delivers content with low latency using edge locations worldwide.
+
+**7. What is an Origin Access Control (OAC)?**
+OAC securely allows CloudFront to access a private S3 bucket without making the bucket public.
+
+**8. Why is a Bucket Policy required?**
+The bucket policy grants CloudFront permission to read objects from the S3 bucket while keeping direct public access blocked.
+
+These steps cover the entire program shown in your manual using only the AWS GUI, with detailed explanations suitable for writing in your lab record and performing the experiment.
