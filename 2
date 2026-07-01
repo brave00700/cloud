@@ -1,0 +1,409 @@
+Program 2: Create Storage Space Using Amazon S3 (GUI Only)
+Aim
+
+To create an Amazon S3 bucket, upload files, organize data, configure permissions, and access files using CloudFront through the AWS Management Console.
+
+Step 1: Login to AWS
+Open your browser.
+Visit https://aws.amazon.com/
+Click Sign In to Console.
+Enter your AWS account credentials.
+After login, the AWS Management Console opens.
+
+Explanation:
+The AWS Management Console is a graphical interface used to create and manage AWS services without typing commands.
+
+Step 2: Open Amazon S3
+In the search bar, type S3.
+Click Amazon S3.
+
+Explanation:
+Amazon S3 (Simple Storage Service) is an object storage service where data is stored inside Buckets.
+
+Step 3: Create an S3 Bucket
+Click Create bucket.
+Select
+Bucket type: General Purpose
+Enter a bucket name.
+
+Example:
+
+suhas-cloud-storage-2026
+
+The bucket name
+
+must be unique worldwide
+use only lowercase letters
+numbers and hyphens are allowed
+no spaces
+Select Region
+
+Example
+
+Asia Pacific (Mumbai)
+ap-south-1
+Leave Object Ownership
+ACLs Disabled (Recommended)
+Leave Block Public Access
+
+Keep all four check boxes selected.
+
+Leave Bucket Versioning
+Disabled
+Leave Default Encryption
+Server-side encryption with Amazon S3 managed keys (SSE-S3)
+Click
+
+Create Bucket
+
+Explanation:
+
+A bucket is like a folder in cloud storage where files are stored.
+
+Step 4: Verify Bucket Creation
+
+The bucket will appear in the S3 bucket list.
+
+Click the bucket name.
+
+Initially the bucket is empty.
+
+Step 5: Upload Files
+
+Inside the bucket
+
+Click
+
+Upload
+
+Then
+
+Add Files
+
+or
+
+Add Folder
+
+Select
+
+Example
+
+index.html
+
+style.css
+
+image.jpg
+
+Click
+
+Upload
+
+Wait until the upload is completed.
+
+Click Close.
+
+Explanation
+
+Objects are the files stored inside the S3 bucket.
+
+Step 6: View Uploaded Files
+
+Open the bucket.
+
+You should see
+
+index.html
+
+style.css
+
+image.jpg
+
+Click any file.
+
+You can see
+
+Object name
+Size
+Last modified
+Storage class
+Step 7: Create Folder (Optional)
+
+Inside bucket
+
+Click
+
+Create Folder
+
+Example
+
+Images
+
+Open the folder.
+
+Upload image files.
+
+Explanation
+
+Folders help organize data inside the bucket.
+
+Step 8: Copy Objects Between Buckets (GUI)
+
+If required
+
+Create another bucket.
+
+Open first bucket.
+
+Select a file.
+
+Click
+
+Actions
+
+↓
+
+Copy
+
+Open second bucket.
+
+Click
+
+Paste
+
+The file is copied.
+
+Step 9: Delete Objects
+
+Select a file.
+
+Click
+
+Delete
+
+Type
+
+permanently delete
+
+Click
+
+Delete Objects
+
+Step 10: Enable Static Website Hosting
+
+Open your bucket.
+
+Select
+
+Properties
+
+Scroll to
+
+Static Website Hosting
+
+Click
+
+Edit
+
+Choose
+
+Enable
+
+Hosting type
+
+Host a Static Website
+
+Index document
+
+index.html
+
+Error document
+
+error.html
+
+(Optional)
+
+Click
+
+Save Changes
+
+Explanation
+
+This makes the bucket capable of hosting a website.
+
+Step 11: Create CloudFront Distribution
+
+Search
+
+CloudFront
+
+Open it.
+
+Click
+
+Create Distribution
+
+Origin Domain
+
+Click inside the Origin field.
+
+Select your S3 bucket.
+
+Example
+
+suhas-cloud-storage-2026
+Origin Access
+
+Choose
+
+Origin Access Control Settings (Recommended)
+Create OAC
+
+Click
+
+Create New OAC
+
+Leave default values.
+
+Click
+
+Create
+
+The new Origin Access Control will be selected.
+
+Web Application Firewall (WAF)
+
+Choose
+
+Do Not Enable Security Protection
+
+Leave all remaining settings as default.
+
+Click
+
+Create Distribution
+
+Explanation
+
+CloudFront securely delivers S3 content using Amazon's global network, making websites faster and more secure.
+
+Step 12: Wait for Distribution Deployment
+
+Status will show
+
+Deploying
+
+Wait around
+
+10–15 minutes
+
+until it changes to
+
+Deployed
+Step 13: Copy CloudFront Domain Name
+
+Open the CloudFront distribution.
+
+Copy
+
+Distribution Domain Name
+
+Example
+
+d2abcxyz123.cloudfront.net
+Step 14: Update Bucket Policy
+
+Go back to
+
+Amazon S3
+
+↓
+
+Open Bucket
+
+↓
+
+Permissions
+
+↓
+
+Bucket Policy
+
+↓
+
+Edit
+
+Replace the policy with the following template:
+
+{
+  "Version":"2012-10-17",
+  "Statement":[
+    {
+      "Sid":"AllowCloudFrontAccessOnly",
+      "Effect":"Allow",
+      "Principal":{
+        "Service":"cloudfront.amazonaws.com"
+      },
+      "Action":"s3:GetObject",
+      "Resource":"arn:aws:s3:::YOUR_BUCKET_NAME/*",
+      "Condition":{
+        "StringEquals":{
+          "AWS:SourceArn":"arn:aws:cloudfront::YOUR_ACCOUNT_ID:distribution/YOUR_DISTRIBUTION_ID"
+        }
+      }
+    }
+  ]
+}
+
+Replace
+
+YOUR_BUCKET_NAME
+
+YOUR_ACCOUNT_ID
+
+YOUR_DISTRIBUTION_ID
+
+with your actual values.
+
+Click
+
+Save Changes
+
+Explanation of Bucket Policy
+
+Version
+
+Policy language version.
+
+Effect
+
+Allows access.
+
+Principal
+
+CloudFront service.
+
+Action
+
+Allows reading objects.
+
+Resource
+
+Specifies all files inside your bucket.
+
+Condition
+
+Only your CloudFront distribution can access the bucket.
+
+Step 15: Test Website
+
+Open browser.
+
+Paste
+
+https://CloudFront_Domain_Name/index.html
+
+Example
+
+https://d2abcxyz123.cloudfront.net/index.html
+
+Your webpage should open.
