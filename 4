@@ -1,0 +1,252 @@
+Got it — I’ll turn your lab sheet into **clear, step-by-step actions** so you can directly perform it in the lab without confusion.
+
+---
+
+# 🔹 PART 1: Understand the Concepts (Very Important)
+
+### 1. AWS IAM
+
+* Controls **who can access what**
+* Works using:
+
+  * **User** → individual login
+  * **Group** → collection of users
+  * **Policy** → permissions (written in JSON)
+  * **Role** → temporary access
+
+---
+
+### 2. Key Points from your sheet
+
+* Root user = full access (⚠️ avoid using)
+* New user = **no permissions by default**
+* Permissions are given using **policies**
+* Best practice = assign permissions via **groups**
+
+---
+
+# 🔹 PART 2: Your Lab Goal
+
+👉 Create an IAM user
+👉 Give access to **S3 bucket**
+👉 Test permissions
+
+---
+
+# 🔹 PART 3: Step-by-Step LAB EXECUTION
+
+---
+
+## ✅ STEP 1: Login as Root User
+
+1. Go to AWS Console
+2. Login using **root email + password**
+
+---
+
+## ✅ STEP 2: Open IAM Dashboard
+
+1. Search → **IAM**
+2. Click **Users**
+
+---
+
+## ✅ STEP 3: Create IAM User
+
+1. Click **Create User**
+2. Enter:
+
+   * Username → `test-user`
+3. Click **Next**
+
+---
+
+## ✅ STEP 4: Set Permissions (IMPORTANT)
+
+Choose one:
+
+### Option A (Recommended - Group)
+
+1. Click **Add user to group**
+2. Click **Create group**
+3. Group name → `S3-Access-Group`
+4. Attach policy:
+
+   * Select: **AmazonS3FullAccess**
+5. Create group
+6. Select the group → Next
+
+---
+
+### Option B (Direct Policy)
+
+1. Select **Attach policies directly**
+2. Choose:
+
+   * **AmazonS3FullAccess**
+3. Click Next
+
+---
+
+## ✅ STEP 5: Create User
+
+1. Click **Create User**
+2. Copy:
+
+   * Username
+   * Console login link
+
+---
+
+## ✅ STEP 6: Enable Console Login
+
+1. Open created user
+2. Go to **Security credentials**
+3. Enable:
+
+   * Console access
+4. Set:
+
+   * Custom password
+5. Save
+
+---
+
+## ✅ STEP 7: Login as IAM User
+
+1. Open **Console login URL**
+2. Enter:
+
+   * Username
+   * Password
+
+---
+
+## ✅ STEP 8: Test Without Permission (Optional)
+
+* If no policy attached:
+
+  * Open **S3**
+  * You will get **Access Denied**
+
+---
+
+## ✅ STEP 9: Create Custom Policy (JSON)
+
+Go to:
+IAM → Policies → Create Policy → JSON
+
+Paste:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": "s3:*",
+      "Resource": "*"
+    }
+  ]
+}
+```
+
+1. Click **Next**
+2. Name: `S3FullAccessCustom`
+3. Create policy
+
+---
+
+## ✅ STEP 10: Attach Policy to User
+
+1. Go to:
+
+   * IAM → Users → `test-user`
+2. Click:
+
+   * Add permissions
+3. Choose:
+
+   * Attach policies directly
+4. Select:
+
+   * `S3FullAccessCustom`
+5. Add permissions
+
+---
+
+## ✅ STEP 11: Test Again
+
+Login as IAM user → Go to S3
+
+👉 Now you should be able to:
+
+* Create bucket
+* Upload files
+
+---
+
+# 🔹 PART 4: Group-Based Permission (Important for Viva)
+
+## Create Group
+
+1. IAM → User Groups → Create group
+2. Name → `Developers`
+3. Attach policy → S3 access
+4. Create
+
+---
+
+## Add User to Group
+
+1. Open group
+2. Click **Add users**
+3. Select `test-user`
+
+---
+
+## Result:
+
+✔ User automatically gets permissions from group
+
+---
+
+# 🔹 PART 5: Delete Policy (Cleanup Step)
+
+1. IAM → Users → test-user
+2. Permissions tab
+3. Select policy
+4. Click **Remove**
+
+---
+
+# 🔹 FINAL UNDERSTANDING (Simple Flow)
+
+```
+User → Group → Policy → Access to AWS Service (S3)
+```
+
+OR
+
+```
+User → Policy → Access
+```
+
+---
+
+# 🔹 PRO TIPS (Exam + Viva)
+
+* ❌ Don’t use root user daily
+* ✅ Use IAM users
+* ✅ Prefer groups over direct permissions
+* Policies are always in **JSON**
+* Role = temporary access (used in EC2, services)
+
+---
+
+If you want, I can:
+✔ Give you **short viva answers**
+✔ OR convert this into a **lab record write-up**
+✔ OR simulate **exam questions** based on this
+
+Just tell 👍
