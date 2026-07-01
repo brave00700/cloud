@@ -1,0 +1,164 @@
+For your **EC2 and S3 Static Website Hosting Lab**, you can use the following simple website files.
+
+## 1. index.html
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My AWS Static Website</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <h1>Welcome to My AWS Website</h1>
+        <p>Hosted using EC2 and Amazon S3</p>
+    </header>
+
+    <nav>
+        <a href="#">Home</a>
+        <a href="#">Services</a>
+        <a href="#">About</a>
+        <a href="#">Contact</a>
+    </nav>
+
+    <section class="container">
+        <h2>Cloud Computing Lab Program</h2>
+        <p>
+            This static website is deployed on AWS Cloud using
+            EC2 Apache Web Server and Amazon S3 Static Website Hosting.
+        </p>
+
+        <div class="card">
+            <h3>Amazon EC2</h3>
+            <p>
+                Amazon EC2 provides scalable virtual servers
+                in the cloud.
+            </p>
+        </div>
+
+        <div class="card">
+            <h3>Amazon S3</h3>
+            <p>
+                Amazon S3 is used for secure object storage
+                and static website hosting.
+            </p>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2026 MCA Cloud Computing Lab</p>
+    </footer>
+
+</body>
+</html>
+```
+
+---
+
+## 2. style.css
+
+```css
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:Arial, sans-serif;
+    background:#f4f4f4;
+}
+
+header{
+    background:#232f3e;
+    color:white;
+    text-align:center;
+    padding:30px;
+}
+
+nav{
+    background:#ff9900;
+    text-align:center;
+    padding:15px;
+}
+
+nav a{
+    color:white;
+    text-decoration:none;
+    margin:15px;
+    font-weight:bold;
+}
+
+.container{
+    width:80%;
+    margin:auto;
+    padding:30px;
+}
+
+.card{
+    background:white;
+    padding:20px;
+    margin-top:20px;
+    border-radius:10px;
+    box-shadow:0 0 10px rgba(0,0,0,0.2);
+}
+
+footer{
+    background:#232f3e;
+    color:white;
+    text-align:center;
+    padding:15px;
+    margin-top:30px;
+}
+```
+
+---
+
+## Directory Structure
+
+```text
+website/
+│
+├── index.html
+└── style.css
+```
+
+---
+
+## Upload to EC2
+
+After creating both files:
+
+```bash
+sudo cp index.html /var/www/html/
+sudo cp style.css /var/www/html/
+```
+
+Restart Apache:
+
+```bash
+sudo systemctl restart apache2
+```
+
+Open:
+
+```text
+http://<EC2-Public-IP>
+```
+
+---
+
+## Upload to S3
+
+1. Create S3 Bucket.
+2. Upload:
+
+   * index.html
+   * style.css
+3. Enable Static Website Hosting.
+4. Make bucket public using Bucket Policy.
+5. Open the S3 Website Endpoint URL.
+
+This website is simple, attractive, and suitable for a Cloud Computing lab demonstration.
