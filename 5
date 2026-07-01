@@ -1,0 +1,420 @@
+Based on your lab manual, this experiment is **Program 5: Create an Amazon RDS MySQL Server and connect it using MySQL Workbench**. Below are the complete GUI-only steps that you can write in your lab record and perform in the lab.
+
+---
+
+# Cloud Lab 5
+
+## Aim
+
+To create an Amazon RDS MySQL database and connect it using MySQL Workbench.
+
+---
+
+# Requirements
+
+* AWS Account
+* Internet connection
+* MySQL Workbench installed on your Windows PC/Laptop
+
+---
+
+# Part 1: Install MySQL Workbench
+
+1. Open Google Chrome.
+2. Search **MySQL Workbench Download**.
+3. Download the version for Windows.
+4. Install it using the default settings.
+5. After installation, close MySQL Workbench.
+
+AWS documents the same connection workflow for MySQL Workbench. ([AWS Documentation][1])
+
+---
+
+# Part 2: Login to AWS
+
+1. Open AWS Console.
+2. Login using your AWS account.
+3. Search **RDS**.
+4. Open **Amazon RDS**.
+
+---
+
+# Part 3: Create Database
+
+Click
+
+**Create Database**
+
+---
+
+## Database Creation Method
+
+Choose
+
+**Standard Create**
+
+Click Next.
+
+---
+
+## Engine Options
+
+Database Engine
+
+**MySQL**
+
+Edition
+
+**MySQL Community**
+
+Version
+
+Choose the default version available (or the version provided by your lab).
+
+---
+
+## Templates
+
+Choose
+
+**Free Tier**
+
+---
+
+## Settings
+
+DB Instance Identifier
+
+Example
+
+```
+studentdb
+```
+
+Master Username
+
+```
+admin
+```
+
+Master Password
+
+Example
+
+```
+Admin@12345
+```
+
+Confirm Password
+
+```
+Admin@12345
+```
+
+**Note:** Remember this username and password.
+
+---
+
+## Instance Configuration
+
+Choose
+
+```
+db.t3.micro
+```
+
+(or the free-tier eligible instance shown in your account)
+
+Leave the remaining settings as default.
+
+---
+
+## Storage
+
+Allocated Storage
+
+```
+20 GB
+```
+
+Leave Storage Type as default.
+
+---
+
+## Connectivity
+
+VPC
+
+Choose
+
+**Default VPC**
+
+Public Access
+
+Choose
+
+**Yes**
+
+This is very important because MySQL Workbench on your PC needs to connect to the database.
+
+Availability Zone
+
+```
+No Preference
+```
+
+Leave other settings as default.
+
+---
+
+## Additional Configuration
+
+Initial Database Name
+
+Example
+
+```
+studentdb
+```
+
+Leave Backup and Monitoring as default.
+
+---
+
+## Create Database
+
+Click
+
+**Create Database**
+
+Wait for approximately **5–10 minutes** until the database status becomes
+
+**Available**. ([AWS Documentation][2])
+
+---
+
+# Part 4: Get Endpoint
+
+Click your database.
+
+Open
+
+**Connectivity & Security**
+
+Note down
+
+* Endpoint
+* Port (usually **3306**)
+
+Example
+
+```
+Endpoint:
+studentdb.xxxxxx.ap-south-1.rds.amazonaws.com
+
+Port:
+3306
+```
+
+---
+
+# Part 5: Configure Security Group
+
+If Workbench cannot connect, update the RDS security group.
+
+Go to
+
+**Connectivity & Security**
+
+Click the Security Group attached to the RDS.
+
+Open
+
+**Inbound Rules**
+
+Click
+
+**Edit Inbound Rules**
+
+Add a new rule:
+
+Type
+
+```
+MySQL/Aurora
+```
+
+Protocol
+
+```
+TCP
+```
+
+Port
+
+```
+3306
+```
+
+Source
+
+```
+Anywhere-IPv4
+0.0.0.0/0
+```
+
+(Your lab manual may also use "Anywhere" for demonstration; in real projects, restrict access to trusted IPs.)
+
+Click
+
+**Save Rules**. ([Repost][3])
+
+---
+
+# Part 6: Connect Using MySQL Workbench
+
+Open
+
+**MySQL Workbench**
+
+Click the **+** icon next to MySQL Connections.
+
+Fill in:
+
+Connection Name
+
+```
+AWS RDS
+```
+
+Hostname
+
+Paste the RDS Endpoint
+
+Port
+
+```
+3306
+```
+
+Username
+
+```
+admin
+```
+
+Password
+
+Click **Store in Vault** (or **Store in Keychain**) and enter your password.
+
+Click
+
+**Test Connection**
+
+If successful:
+
+```
+Successfully Made the MySQL Connection
+```
+
+Click
+
+**OK**
+
+Then click the new connection to open it. ([AWS Documentation][1])
+
+---
+
+# Part 7: Create Database
+
+```sql
+CREATE DATABASE StudentDB;
+
+USE StudentDB;
+```
+
+---
+
+# Part 8: Create Table
+
+```sql
+CREATE TABLE Student(
+Student_ID INT PRIMARY KEY,
+Student_Name VARCHAR(50),
+Department VARCHAR(30),
+Marks INT
+);
+```
+
+---
+
+# Part 9: Insert Records
+
+```sql
+INSERT INTO Student VALUES
+(101,'Rahul','MCA',90),
+(102,'Anjali','MCA',85),
+(103,'Kiran','MCA',88),
+(104,'Sneha','MCA',92),
+(105,'Rohit','MCA',80);
+```
+
+---
+
+# Part 10: Display Records
+
+```sql
+SELECT * FROM Student;
+```
+
+---
+
+# Part 11: Update Record
+
+```sql
+UPDATE Student
+SET Marks=95
+WHERE Student_ID=101;
+```
+
+---
+
+# Part 12: Delete Record
+
+```sql
+DELETE FROM Student
+WHERE Student_ID=105;
+```
+
+---
+
+# Part 13: Verify
+
+```sql
+SELECT * FROM Student;
+```
+
+---
+
+# Expected Output
+
+The Student table will contain the inserted records, the marks for Student_ID 101 will be updated to 95, and the record for Student_ID 105 will be deleted.
+
+---
+
+# Viva Questions
+
+1. What is Amazon RDS?
+2. What is MySQL Workbench?
+3. What is an RDS Endpoint?
+4. What is the default MySQL port? (**3306**)
+5. Why do we enable Public Access?
+6. What is the purpose of a Security Group?
+7. What are CRUD operations?
+8. Difference between EC2 and RDS?
+
+These steps are sufficient to complete **Cloud Lab 5** entirely using the AWS GUI and MySQL Workbench.
+
+[1]: https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_ConnectToInstance.MySQLWorkbench.html?utm_source=chatgpt.com "Connecting from MySQL Workbench - Amazon Relational Database Service"
+[2]: https://docs.aws.amazon.com/pt_br/hands-on/latest/create-mysql-db/create-mysql-db.html?utm_source=chatgpt.com "Create and Connect to a MySQL Database with Amazon RDS - Create and Connect to a MySQL Database with Amazon RDS"
+[3]: https://repost.aws/knowledge-center/connect-rds-mysql-workbench?utm_source=chatgpt.com "Use MySQL Workbench to connect to RDS DB instances running MySQL | AWS re:Post"
