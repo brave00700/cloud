@@ -1,0 +1,877 @@
+# Complete AWS Lab Guide
+
+## EC2 (Apache + PHP) ↔ RDS MySQL Inside Same VPC
+
+### Without Creating Separate Security Group for RDS
+
+This guide includes all missing steps and follows a simpler method:
+
+* One VPC
+* Public EC2
+* RDS in same VPC
+* SAME security group used for both EC2 and RDS
+* Apache + PHP + MySQL connection test
+
+---
+
+# Architecture
+
+```text
+Internet
+   |
+   v
+EC2 (Ubuntu + Apache + PHP)
+   |
+   v
+RDS MySQL
+```
+
+Both resources are inside same VPC.
+
+---
+
+# STEP 1 — Create VPC
+
+Open:
+
+[AWS VPC Console](https://console.aws.amazon.com/vpc/?utm_source=chatgpt.com)
+
+Go to:
+
+## Your VPCs → Create VPC
+
+Choose:
+
+* VPC only
+
+Enter:
+
+| Field     | Value         |
+| --------- | ------------- |
+| Name      | `demo-vpc`    |
+| IPv4 CIDR | `10.0.0.0/16` |
+
+Click:
+
+* Create VPC
+
+---
+
+# STEP 2 — Create TWO Subnets
+
+RDS requires minimum 2 subnets in different Availability Zones.
+
+Go to:
+
+## Subnets → Create subnet
+
+Select:
+
+* VPC = `demo-vpc`
+
+---
+
+## First Subnet
+
+| Field | Value             |
+| ----- | ----------------- |
+| Name  | `public-subnet-1` |
+| AZ    | `ap-south-1a`     |
+| CIDR  | `10.0.1.0/24`     |
+
+---
+
+## Second Subnet
+
+Click:
+
+* Add new subnet
+
+Enter:
+
+| Field | Value             |
+| ----- | ----------------- |
+| Name  | `public-subnet-2` |
+| AZ    | `ap-south-1b`     |
+| CIDR  | `10.0.2.0/24`     |
+
+Click:
+
+* Create subnet
+
+---
+
+# STEP 3 — Enable Auto Public IP
+
+Do this for BOTH subnets.
+
+Go to:
+
+## Subnets
+
+Select subnet.
+
+Click:
+
+* Actions
+* Edit subnet settings
+
+Enable:
+
+* Auto-assign public IPv4 address
+
+Save.
+
+Repeat for second subnet.
+
+---
+
+# STEP 4 — Create Internet Gateway
+
+Go to:
+
+## Internet Gateways → Create internet gateway
+
+Enter:
+
+| Field | Value      |
+| ----- | ---------- |
+| Name  | `demo-igw` |
+
+Create.
+
+---
+
+## Attach Internet Gateway
+
+Select IGW.
+
+Click:
+
+* Actions
+* Attach to VPC
+
+Choose:
+
+* `demo-vpc`
+
+Attach.
+
+---
+
+# STEP 5 — Create Route Table
+
+Go to:
+
+## Route Tables → Create route table
+
+Enter:
+
+| Field | Value       |
+| ----- | ----------- |
+| Name  | `public-rt` |
+| VPC   | `demo-vpc`  |
+
+Create.
+
+---
+
+# STEP 6 — Add Internet Route
+
+Open route table.
+
+Go to:
+
+## Routes → Edit routes
+
+Add:
+
+| Destination | Target           |
+| ----------- | ---------------- |
+| `0.0.0.0/0` | Internet Gateway |
+
+Select:
+
+* `demo-igw`
+
+Save changes.
+
+---
+
+# STEP 7 — Associate Subnets
+
+Inside route table:
+
+## Subnet Associations → Edit
+
+Select:
+
+* `public-subnet-1`
+* `public-subnet-2`
+
+Save.
+
+---
+
+# STEP 8 — Create ONE Security Group
+
+We will use SAME security group for:
+
+* EC2
+* RDS
+
+Go to:
+
+[AWS EC2 Console](https://console.aws.amazon.com/ec2/?utm_source=chatgpt.com)
+
+## Security Groups → Create security group
+
+Enter:
+
+| Field       | Value              |
+| ----------- | ------------------ |
+| Name        | `web-rds-sg`       |
+| Description | EC2 and RDS access |
+| VPC         | `demo-vpc`         |
+
+---
+
+# STEP 9 — Configure Inbound Rules
+
+Add these rules:
+
+| Type         | Port | Source       |
+| ------------ | ---- | ------------ |
+| SSH          | 22   | My IP        |
+| HTTP         | 80   | `0.0.0.0/0`  |
+| HTTPS        | 443  | `0.0.0.0/0`  |
+| MySQL/Aurora | 3306 | `web-rds-sg` |
+
+IMPORTANT:
+
+For MySQL source:
+
+* Select **Custom**
+* Choose SAME security group (`web-rds-sg`)
+
+This allows:
+
+* EC2 ↔ RDS communication inside SG
+
+Create security group.
+
+---
+
+# STEP 10 — Launch EC2 Instance
+
+Open:
+
+## Instances → Launch instances
+
+---
+
+## Basic Details
+
+| Field | Value           |
+| ----- | --------------- |
+| Name  | `apache-server` |
+
+---
+
+## AMI
+
+Choose:
+
+* Ubuntu Server 22.04 LTS
+
+---
+
+## Instance Type
+
+Choose:
+
+* `t2.micro`
+
+---
+
+## Key Pair
+
+Click:
+
+* Create new key pair
+
+Enter:
+
+| Field         | Value   |
+| ------------- | ------- |
+| Key Pair Name | `mykey` |
+| Type          | RSA     |
+| Format        | `.pem`  |
+
+Download key.
+
+---
+
+## Network Settings
+
+Click:
+
+* Edit
+
+Choose:
+
+| Field                 | Value              |
+| --------------------- | ------------------ |
+| VPC                   | `demo-vpc`         |
+| Subnet                | `public-subnet-1`  |
+| Auto Assign Public IP | Enable             |
+| Firewall              | Select existing SG |
+| Security Group        | `web-rds-sg`       |
+
+---
+
+## Storage
+
+Keep default:
+
+* 8 GB gp3
+
+---
+
+Click:
+
+* Launch Instance
+
+Wait until:
+
+* Instance state = Running
+* Status checks = 2/2 passed
+
+---
+
+# STEP 11 — Connect to EC2
+
+Move key to Linux terminal location.
+
+Run:
+
+```bash
+chmod 400 mykey.pem
+```
+
+Connect:
+
+```bash
+ssh -i mykey.pem ubuntu@EC2_PUBLIC_IP
+```
+
+Example:
+
+```bash
+ssh -i mykey.pem ubuntu@13.234.xx.xx
+```
+
+Type:
+
+```bash
+yes
+```
+
+---
+
+# STEP 12 — Install Apache
+
+Inside EC2:
+
+Update packages:
+
+```bash
+sudo apt update -y
+```
+
+Install Apache:
+
+```bash
+sudo apt install apache2 -y
+```
+
+Start Apache:
+
+```bash
+sudo systemctl start apache2
+sudo systemctl enable apache2
+```
+
+Check status:
+
+```bash
+sudo systemctl status apache2
+```
+
+You should see:
+
+```text
+active (running)
+```
+
+Press:
+
+```text
+Q
+```
+
+to exit.
+
+---
+
+# STEP 13 — Install PHP
+
+Run:
+
+```bash
+sudo apt install php libapache2-mod-php php-mysql -y
+```
+
+Check PHP version:
+
+```bash
+php -v
+```
+
+---
+
+# STEP 14 — Install MySQL Client
+
+Run:
+
+```bash
+sudo apt install mysql-client -y
+```
+
+Check:
+
+```bash
+mysql --version
+```
+
+---
+
+# STEP 15 — Verify Apache Website
+
+Open browser:
+
+```text
+http://EC2_PUBLIC_IP
+```
+
+Expected:
+
+```text
+Apache2 Ubuntu Default Page
+```
+
+This confirms:
+
+* EC2 working
+* Security group working
+* HTTP working
+
+---
+
+# STEP 16 — Create DB Subnet Group
+
+Open:
+
+[AWS RDS Console](https://console.aws.amazon.com/rds/?utm_source=chatgpt.com)
+
+Go to:
+
+## Subnet groups → Create DB subnet group
+
+Enter:
+
+| Field       | Value              |
+| ----------- | ------------------ |
+| Name        | `rds-subnet-group` |
+| Description | RDS subnet group   |
+| VPC         | `demo-vpc`         |
+
+---
+
+## Add Subnets
+
+Select both:
+
+* `public-subnet-1`
+* `public-subnet-2`
+
+Create.
+
+---
+
+# STEP 17 — Create RDS MySQL Database
+
+Go to:
+
+## Databases → Create database
+
+Choose:
+
+| Option            | Value           |
+| ----------------- | --------------- |
+| Database Creation | Standard Create |
+| Engine            | MySQL           |
+
+---
+
+## Version
+
+Keep default.
+
+---
+
+## Templates
+
+Choose:
+
+* Free tier
+
+---
+
+## Settings
+
+| Field                  | Value                  |
+| ---------------------- | ---------------------- |
+| DB Instance Identifier | `mydb`                 |
+| Master Username        | `admin`                |
+| Password               | create strong password |
+
+---
+
+## Instance Configuration
+
+Choose:
+
+* `db.t3.micro`
+
+---
+
+## Storage
+
+Keep default:
+
+* 20 GB
+
+---
+
+# STEP 18 — Connectivity Settings
+
+This is the IMPORTANT part.
+
+Choose:
+
+| Field              | Value              |
+| ------------------ | ------------------ |
+| VPC                | `demo-vpc`         |
+| DB Subnet Group    | `rds-subnet-group` |
+| Public Access      | No                 |
+| VPC Security Group | Choose existing    |
+| Existing SG        | `web-rds-sg`       |
+
+So BOTH:
+
+* EC2
+* RDS
+
+use SAME SG.
+
+---
+
+## Additional Configuration
+
+Initial Database Name:
+
+```text
+appdb
+```
+
+---
+
+Click:
+
+* Create database
+
+Wait 5–10 minutes until:
+
+```text
+Available
+```
+
+---
+
+# STEP 19 — Copy RDS Endpoint
+
+Open database.
+
+Copy:
+
+* Endpoint
+
+Example:
+
+```text
+mydb.abcdefg.ap-south-1.rds.amazonaws.com
+```
+
+---
+
+# STEP 20 — Test MySQL Connection
+
+SSH into EC2.
+
+Run:
+
+```bash
+mysql -h RDS_ENDPOINT -u admin -p
+```
+
+Example:
+
+```bash
+mysql -h mydb.xxxxx.ap-south-1.rds.amazonaws.com -u admin -p
+```
+
+Enter password.
+
+If successful:
+
+```text
+mysql>
+```
+
+appears.
+
+---
+
+# STEP 21 — Create Table
+
+Inside MySQL:
+
+```sql
+USE appdb;
+
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100)
+);
+
+INSERT INTO users(name)
+VALUES ('John');
+```
+
+Verify:
+
+```sql
+SELECT * FROM users;
+```
+
+Exit:
+
+```sql
+exit;
+```
+
+---
+
+# STEP 22 — Create PHP Application
+
+Go to Apache folder:
+
+```bash
+cd /var/www/html
+```
+
+Remove default page:
+
+```bash
+sudo rm index.html
+```
+
+Create PHP file:
+
+```bash
+sudo nano index.php
+```
+
+Paste:
+
+```php
+<?php
+
+$host = "RDS_ENDPOINT";
+$user = "admin";
+$pass = "YOUR_PASSWORD";
+$db   = "appdb";
+
+$conn = new mysqli($host, $user, $pass, $db);
+
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+echo "<h2>Connected Successfully to RDS</h2>";
+
+$sql = "SELECT * FROM users";
+
+$result = $conn->query($sql);
+
+while($row = $result->fetch_assoc()) {
+    echo "User: " . $row["name"] . "<br>";
+}
+
+$conn->close();
+
+?>
+```
+
+Replace:
+
+* `RDS_ENDPOINT`
+* `YOUR_PASSWORD`
+
+Save:
+
+* CTRL + O
+* ENTER
+* CTRL + X
+
+---
+
+# STEP 23 — Restart Apache
+
+Run:
+
+```bash
+sudo systemctl restart apache2
+```
+
+---
+
+# STEP 24 — Final Test
+
+Open browser:
+
+```text
+http://EC2_PUBLIC_IP
+```
+
+Expected Output:
+
+```text
+Connected Successfully to RDS
+
+User: John
+```
+
+---
+
+# FINAL SECURITY GROUP CONFIGURATION
+
+## web-rds-sg
+
+### Inbound Rules
+
+| Type  | Port | Source       |
+| ----- | ---- | ------------ |
+| SSH   | 22   | My IP        |
+| HTTP  | 80   | `0.0.0.0/0`  |
+| HTTPS | 443  | `0.0.0.0/0`  |
+| MySQL | 3306 | `web-rds-sg` |
+
+---
+
+# IMPORTANT CONCEPT
+
+Why use same SG as source?
+
+```text
+Source = web-rds-sg
+```
+
+means:
+
+> Any resource using this SG can communicate on port 3306.
+
+So:
+
+* EC2 can connect to RDS
+* RDS remains private
+* MySQL not exposed publicly
+
+---
+
+# Common Errors and Fixes
+
+## ERROR: Can't connect to MySQL
+
+Check:
+
+* RDS status = Available
+* Same VPC used
+* Same SG attached
+* Port 3306 rule exists
+* Correct endpoint
+* Correct password
+
+---
+
+## ERROR: Apache page not loading
+
+Check:
+
+```bash
+sudo systemctl status apache2
+```
+
+Also verify:
+
+* EC2 has public IP
+* HTTP port 80 open
+
+---
+
+## ERROR: PHP code downloading instead of executing
+
+Install PHP module:
+
+```bash
+sudo apt install libapache2-mod-php -y
+```
+
+Restart Apache:
+
+```bash
+sudo systemctl restart apache2
+```
+
+---
+
+# Complete Flow Summary
+
+```text
+1. Create VPC
+2. Create 2 subnets
+3. Create IGW
+4. Create Route Table
+5. Associate subnets
+6. Enable public IP
+7. Create ONE SG
+8. Launch EC2
+9. Install Apache + PHP
+10. Create DB subnet group
+11. Create RDS
+12. Use SAME SG for RDS
+13. Test MySQL connection
+14. Create PHP app
+15. Access application in browser
+```
