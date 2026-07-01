@@ -1,0 +1,164 @@
+Experiment 3: Creating VPC, EC2 Instances and Application Load Balancer in AWS
+Aim
+
+To create a Virtual Private Cloud (VPC), launch EC2 instances in different subnets, configure a web server, and implement load balancing using an Application Load Balancer.
+
+Requirements
+AWS Account
+Internet connection
+Basic knowledge of cloud and networking
+Step-by-Step Procedure
+1. Create a VPC
+Go to AWS Console → VPC Dashboard
+Click Create VPC
+Select VPC only
+Enter:
+Name: MyVPC
+IPv4 CIDR block: 10.0.0.0/16
+Click Create VPC
+
+👉 This creates an isolated network in AWS.
+
+2. Create an Internet Gateway (IGW)
+Go to Internet Gateways
+Click Create Internet Gateway
+Enter name: MyIGW
+Click Create
+Select the created IGW → Actions → Attach to VPC
+Choose MyVPC → Attach
+
+👉 IGW allows communication between VPC and the internet.
+
+3. Create Subnets
+Subnet 1
+Go to Subnets → Create Subnet
+Select MyVPC
+Enter:
+Name: Subnet-1
+Availability Zone: Any (e.g., ap-south-1a)
+CIDR: 10.0.1.0/24
+Click Create
+Subnet 2
+
+Repeat above:
+
+Name: Subnet-2
+CIDR: 10.0.2.0/24
+
+👉 Subnets divide the VPC into smaller networks.
+
+4. Create Route Table
+Go to Route Tables
+Click Create Route Table
+Enter:
+Name: MyRouteTable
+Select VPC: MyVPC
+Click Create
+5. Associate Subnets with Route Table
+Select MyRouteTable
+Go to Subnet Associations → Edit
+Select:
+Subnet-1
+Subnet-2
+Click Save
+6. Add Route to Internet
+Go to Routes → Edit Routes
+Click Add Route
+Enter:
+Destination: 0.0.0.0/0
+Target: Internet Gateway (MyIGW)
+Click Save
+
+👉 This allows internet access.
+
+7. Launch EC2 Instances (2 Instances)
+Instance 1
+Go to EC2 Dashboard → Launch Instance
+Configure:
+Name: Server-1
+AMI: Ubuntu
+Instance type: t2.micro
+Create/Select Key Pair
+Under Network Settings:
+VPC: MyVPC
+Subnet: Subnet-1
+Enable Auto-assign Public IP
+Security Group:
+Allow HTTP (port 80) from Anywhere
+8. Install Apache Web Server
+
+In Advanced Details → User Data, paste:
+
+#!/bin/bash
+sudo apt update -y
+sudo apt install -y apache2
+sudo systemctl start apache2
+sudo systemctl enable apache2
+
+echo "<h1>Server Details</h1><p><strong>Hostname:</strong> $(hostname)</p><p><strong>IP Address:</strong> $(hostname -I | cut -d' ' -f1)</p>" > /var/www/html/index.html
+
+sudo systemctl restart apache2
+
+👉 This installs Apache and displays server details.
+
+Click Launch Instance
+Instance 2
+
+Repeat same steps:
+
+Name: Server-2
+Subnet: Subnet-2
+9. Verify Apache Server
+Go to Instances
+Copy Public IP
+Paste in browser
+
+👉 You should see server details page.
+
+10. Create Target Group
+Go to EC2 → Load Balancing → Target Groups
+Click Create Target Group
+Configure:
+Target Type: Instances
+Name: MyTargetGroup
+Protocol: HTTP
+Select VPC: MyVPC
+Register Targets:
+Select both EC2 instances
+Click Create
+11. Create Application Load Balancer
+Go to Load Balancers
+Click Create Load Balancer
+Select Application Load Balancer
+Configure:
+Name: MyALB
+Scheme: Internet-facing
+IP type: IPv4
+Network Mapping:
+Select VPC: MyVPC
+Select both subnets
+12. Configure Security Group
+Create new Security Group
+Add rule:
+Type: HTTP
+Source: 0.0.0.0/0
+Save
+13. Configure Listener
+Protocol: HTTP
+Forward to: MyTargetGroup
+
+Click Create Load Balancer
+
+14. Test Load Balancer
+Copy DNS name of Load Balancer
+Paste in browser
+
+👉 Refresh multiple times
+
+Expected Output
+You will see responses from:
+Server-1
+Server-2
+IP/Hostname changes on refresh
+
+👉 This shows load balancing is workin
