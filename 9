@@ -1,0 +1,485 @@
+Since you've already reached the stage where the Java program compiles, here is the **correct complete procedure from the beginning to the end** for your **Program 9: Deploy Java Application by Connecting to AWS RDS**.
+
+# 1. Launch EC2 Instance
+
+1. Open AWS Console.
+2. Go to EC2 → Launch Instance.
+3. Configure:
+
+   * Name: `JavaServer`
+   * AMI: Ubuntu Server 24.04 LTS
+   * Instance Type: `t2.micro`
+   * Create/Select Key Pair
+4. Security Group:
+
+   * SSH (22) → Anywhere
+   * HTTP (80) → Anywhere
+5. Launch Instance.
+
+---
+
+# 2. Connect to EC2
+
+On your Linux terminal:
+
+```bash
+chmod 400 key2.pem
+```
+
+```bash
+ssh -i key2.pem ubuntu@<PUBLIC-IP>
+```
+
+Example:
+
+```bash
+ssh -i key2.pem ubuntu@13.xxx.xxx.xxx
+```
+
+---
+
+# 3. Install Java
+
+Update packages:
+
+```bash
+sudo apt update
+```
+
+Install Java:
+
+```bash
+sudo apt install openjdk-17-jdk -y
+```
+
+Verify:
+
+```bash
+java -version
+```
+
+Expected:
+
+```text
+openjdk version "17"
+```
+
+Check compiler:
+
+```bash
+javac -version
+```
+
+---
+
+# 4. Create AWS RDS MySQL Database
+
+Go to AWS Console → RDS → Create Database.
+
+Settings:
+
+```text
+Engine: MySQL
+Template: Free Tier
+DB Instance Identifier: javadb
+Master Username: admin
+Master Password: admin123
+```
+
+Connectivity:
+
+```text
+Public Access: Yes
+```
+
+Create Database.
+
+Wait until:
+
+```text
+Status = Available
+```
+
+---
+
+# 5. Configure RDS Security Group
+
+Open:
+
+```text
+RDS → Connectivity & Security
+```
+
+Open attached Security Group.
+
+Add Inbound Rule:
+
+```text
+Type: MySQL/Aurora
+Port: 3306
+Source: EC2 Security Group
+```
+
+For lab testing:
+
+```text
+Source: 0.0.0.0/0
+```
+
+Save.
+
+---
+
+# 6. Install MySQL Client on EC2
+
+```bash
+sudo apt install mysql-client -y
+```
+
+Verify:
+
+```bash
+mysql --version
+```
+
+---
+
+# 7. Connect EC2 to RDS
+
+Your endpoint:
+
+```text
+javadb.czuyiag0y251.ap-south-1.rds.amazonaws.com
+```
+
+Connect:
+
+```bash
+mysql -h javadb.czuyiag0y251.ap-south-1.rds.amazonaws.com -u admin -p
+```
+
+Enter:
+
+```text
+admin123
+```
+
+---
+
+# 8. Create Database
+
+Inside MySQL:
+
+```sql
+CREATE DATABASE companydb;
+```
+
+Use database:
+
+```sql
+USE companydb;
+```
+
+---
+
+# 9. Create Table
+
+```sql
+CREATE TABLE employees(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100),
+    email VARCHAR(100),
+    country VARCHAR(50),
+    salary DOUBLE
+);
+```
+
+Verify:
+
+```sql
+SHOW TABLES;
+```
+
+Expected:
+
+```text
+employees
+```
+
+Exit:
+
+```sql
+exit
+```
+
+---
+
+# 10. Download JDBC Driver
+
+Go to home directory:
+
+```bash
+cd ~
+```
+
+Download:
+
+```bash
+wget https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-j-8.4.0.tar.gz
+```
+
+Extract:
+
+```bash
+tar -xvf mysql-connector-j-8.4.0.tar.gz
+```
+
+Verify:
+
+```bash
+find ~ -name "*.jar"
+```
+
+Expected:
+
+```text
+/home/ubuntu/mysql-connector-j-8.4.0/mysql-connector-j-8.4.0.jar
+```
+
+---
+
+# 11. Create Java Program
+
+Create file:
+
+```bash
+nano JdbcCrudDemo.java
+```
+
+Paste the Java code.
+
+Save:
+
+```text
+CTRL + X
+Y
+ENTER
+```
+
+---
+
+# 12. Compile Java Program
+
+Use the correct JAR path:
+
+```bash
+javac -cp .:/home/ubuntu/mysql-connector-j-8.4.0/mysql-connector-j-8.4.0.jar JdbcCrudDemo.java
+```
+
+No output means compilation successful.
+
+Verify:
+
+```bash
+ls
+```
+
+Expected:
+
+```text
+JdbcCrudDemo.class
+JdbcCrudDemo.java
+```
+
+---
+
+# 13. Run Java Program
+
+```bash
+java -cp .:/home/ubuntu/mysql-connector-j-8.4.0/mysql-connector-j-8.4.0.jar JdbcCrudDemo
+```
+
+---
+
+# 14. Expected Output
+
+```text
+Connected to RDS Successfully!
+Inserted new employee.
+
+Employee List:
+1 | Alice | alice@example.com | USA | 50000.0
+
+Updated salary for Alice.
+Deleted employee Alice.
+
+Connection Closed.
+```
+
+---
+
+# Commands Used in Lab Record
+
+```bash
+sudo apt update
+sudo apt install openjdk-17-jdk -y
+java -version
+
+sudo apt install mysql-client -y
+
+mysql -h javadb.czuyiag0y251.ap-south-1.rds.amazonaws.com -u admin -p
+
+wget https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-j-8.4.0.tar.gz
+
+tar -xvf mysql-connector-j-8.4.0.tar.gz
+
+javac -cp .:/home/ubuntu/mysql-connector-j-8.4.0/mysql-connector-j-8.4.0.jar JdbcCrudDemo.java
+
+java -cp .:/home/ubuntu/mysql-connector-j-8.4.0/mysql-connector-j-8.4.0.jar JdbcCrudDemo
+```
+
+For your lab record, write **Aim, Architecture Diagram, Procedure, Java Code, Output Screenshots, Result, and Viva Questions**. The procedure above is the exact sequence your examiner will expect.
+
+
+
+
+
+
+
+import java.sql.*;
+
+public class JdbcCrudDemo {
+
+    // Database credentials
+    static final String JDBC_URL = "jdbc:mysql://javadb.czuyiag0y251.ap-south-1.rds.amazonaws.com:3306/companydb";
+    static final String JDBC_USER = "admin";
+    static final String JDBC_PASS = "admin123";
+
+    public static void main(String[] args) {
+
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+
+        try {
+
+            // Load MySQL JDBC Driver
+            Class.forName("com.mysql.cj.jdbc.Driver");
+
+            // Connect to AWS RDS
+            conn = DriverManager.getConnection(JDBC_URL, JDBC_USER, JDBC_PASS);
+
+            System.out.println("=================================");
+            System.out.println("Connected to AWS RDS Successfully");
+            System.out.println("=================================");
+
+            // -------------------------------
+            // CREATE (INSERT)
+            // -------------------------------
+
+            String insertQuery =
+                    "INSERT INTO employees(name,email,country,salary) VALUES(?,?,?,?)";
+
+            pstmt = conn.prepareStatement(insertQuery);
+
+            pstmt.setString(1, "Alice");
+            pstmt.setString(2, "alice@example.com");
+            pstmt.setString(3, "USA");
+            pstmt.setDouble(4, 50000);
+
+            int rows = pstmt.executeUpdate();
+
+            if (rows > 0) {
+                System.out.println("\nEmployee inserted successfully.");
+            }
+
+            // -------------------------------
+            // READ (SELECT)
+            // -------------------------------
+
+            stmt = conn.createStatement();
+
+            rs = stmt.executeQuery("SELECT * FROM employees");
+
+            System.out.println("\nEmployee Records");
+            System.out.println("---------------------------------------------------------------");
+            System.out.printf("%-5s %-15s %-25s %-12s %-10s%n",
+                    "ID", "NAME", "EMAIL", "COUNTRY", "SALARY");
+            System.out.println("---------------------------------------------------------------");
+
+            while (rs.next()) {
+
+                System.out.printf("%-5d %-15s %-25s %-12s %-10.2f%n",
+                        rs.getInt("id"),
+                        rs.getString("name"),
+                        rs.getString("email"),
+                        rs.getString("country"),
+                        rs.getDouble("salary"));
+            }
+
+            // -------------------------------
+            // UPDATE
+            // -------------------------------
+
+            String updateQuery =
+                    "UPDATE employees SET salary=? WHERE name=?";
+
+            pstmt = conn.prepareStatement(updateQuery);
+
+            pstmt.setDouble(1, 60000);
+            pstmt.setString(2, "Alice");
+
+            rows = pstmt.executeUpdate();
+
+            if (rows > 0) {
+                System.out.println("\nEmployee salary updated successfully.");
+            }
+
+            // -------------------------------
+            // DELETE
+            // -------------------------------
+
+            String deleteQuery =
+                    "DELETE FROM employees WHERE name=?";
+
+            pstmt = conn.prepareStatement(deleteQuery);
+
+            pstmt.setString(1, "Alice");
+
+            rows = pstmt.executeUpdate();
+
+            if (rows > 0) {
+                System.out.println("Employee deleted successfully.");
+            }
+
+            System.out.println("\nCRUD Operations Completed Successfully.");
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+
+        } finally {
+
+            try {
+                if (rs != null)
+                    rs.close();
+
+                if (stmt != null)
+                    stmt.close();
+
+                if (pstmt != null)
+                    pstmt.close();
+
+                if (conn != null)
+                    conn.close();
+
+                System.out.println("Database Connection Closed.");
+
+            } catch (SQLException e) {
+
+                e.printStackTrace();
+            }
+        }
+    }
+}
