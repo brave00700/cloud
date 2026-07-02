@@ -1,0 +1,478 @@
+# Program 10: Demonstrate Auto Scaling Group Concept in AWS Cloud
+
+## Aim
+
+To create and demonstrate an AWS Auto Scaling Group (ASG) with an Application Load Balancer (ALB) that automatically maintains the required number of EC2 instances.
+
+---
+
+# What is Auto Scaling?
+
+AWS Auto Scaling automatically launches or terminates EC2 instances based on demand.
+
+### Benefits
+
+* High Availability
+* Fault Tolerance
+* Cost Optimization
+* Automatic Recovery
+
+### Example
+
+If Desired Capacity = 2 and one EC2 instance fails, Auto Scaling automatically creates a new instance to maintain 2 running instances.
+
+---
+
+# Architecture
+
+User → Load Balancer → Target Group → Auto Scaling Group → EC2 Instances
+
+---
+
+# Step 1: Create a VPC
+
+1. Open AWS Console.
+2. Search **VPC**.
+3. Click **Create VPC**.
+
+### Configure
+
+| Parameter | Value           |
+| --------- | --------------- |
+| Name      | AutoScaling-VPC |
+| IPv4 CIDR | 10.0.0.0/16     |
+
+4. Click **Create VPC**.
+
+### Explanation
+
+A VPC is a private network where all AWS resources will be created.
+
+---
+
+# Step 2: Create Internet Gateway (IGW)
+
+1. VPC Dashboard → Internet Gateways.
+2. Click **Create Internet Gateway**.
+
+### Configure
+
+| Parameter | Value           |
+| --------- | --------------- |
+| Name      | AutoScaling-IGW |
+
+3. Click **Create**.
+4. Select IGW.
+5. Click **Attach to VPC**.
+6. Select AutoScaling-VPC.
+
+### Explanation
+
+Internet Gateway allows resources inside VPC to access the Internet.
+
+---
+
+# Step 3: Create Two Public Subnets
+
+## Public Subnet 1
+
+VPC → Subnets → Create Subnet
+
+| Parameter         | Value           |
+| ----------------- | --------------- |
+| Name              | Public-Subnet-1 |
+| Availability Zone | ap-south-1a     |
+| CIDR              | 10.0.1.0/24     |
+
+Create subnet.
+
+---
+
+## Public Subnet 2
+
+Create another subnet.
+
+| Parameter         | Value           |
+| ----------------- | --------------- |
+| Name              | Public-Subnet-2 |
+| Availability Zone | ap-south-1b     |
+| CIDR              | 10.0.2.0/24     |
+
+Create subnet.
+
+### Explanation
+
+Two subnets in different Availability Zones provide fault tolerance.
+
+---
+
+# Step 4: Create Route Table
+
+1. VPC → Route Tables.
+2. Click **Create Route Table**.
+
+### Configure
+
+| Parameter | Value           |
+| --------- | --------------- |
+| Name      | Public-RT       |
+| VPC       | AutoScaling-VPC |
+
+Create.
+
+---
+
+## Add Internet Route
+
+1. Select Route Table.
+2. Routes → Edit Routes.
+3. Add Route.
+
+| Destination | Target           |
+| ----------- | ---------------- |
+| 0.0.0.0/0   | Internet Gateway |
+
+Save.
+
+---
+
+## Associate Subnets
+
+1. Subnet Associations.
+2. Edit Associations.
+3. Select both public subnets.
+4. Save.
+
+### Explanation
+
+Route table directs internet traffic through IGW.
+
+---
+
+# Step 5: Create Target Group
+
+1. EC2 Dashboard.
+2. Load Balancing → Target Groups.
+3. Click **Create Target Group**.
+
+### Configure
+
+| Parameter   | Value           |
+| ----------- | --------------- |
+| Target Type | Instances       |
+| Protocol    | HTTP            |
+| Port        | 80              |
+| VPC         | AutoScaling-VPC |
+| Name        | Web-TG          |
+
+Click **Next**.
+
+Do not register targets now.
+
+Create Target Group.
+
+### Explanation
+
+Target Group contains EC2 instances that receive traffic from the Load Balancer.
+
+---
+
+# Step 6: Create Application Load Balancer
+
+1. EC2 Dashboard.
+2. Load Balancers.
+3. Create Load Balancer.
+4. Select **Application Load Balancer**.
+
+---
+
+### Basic Configuration
+
+| Parameter | Value           |
+| --------- | --------------- |
+| Name      | Web-ALB         |
+| Scheme    | Internet Facing |
+| IP Type   | IPv4            |
+
+---
+
+### Network Mapping
+
+Select:
+
+* AutoScaling-VPC
+* Public-Subnet-1
+* Public-Subnet-2
+
+---
+
+### Security Group
+
+Create new security group:
+
+| Type      | Source    |
+| --------- | --------- |
+| HTTP (80) | 0.0.0.0/0 |
+
+Attach security group.
+
+---
+
+### Listener
+
+| Protocol | Port |
+| -------- | ---- |
+| HTTP     | 80   |
+
+Forward to:
+
+**Web-TG**
+
+Create Load Balancer.
+
+### Explanation
+
+Load Balancer distributes incoming traffic among EC2 instances.
+
+---
+
+# Step 7: Create Security Group for EC2
+
+EC2 → Security Groups → Create.
+
+### Rules
+
+| Type | Port | Source   |
+| ---- | ---- | -------- |
+| SSH  | 22   | My IP    |
+| HTTP | 80   | Anywhere |
+
+Create Security Group.
+
+### Explanation
+
+Allows web access and SSH login.
+
+---
+
+# Step 8: Create Launch Template
+
+EC2 → Launch Templates → Create Launch Template.
+
+---
+
+### Configure
+
+| Parameter      | Value              |
+| -------------- | ------------------ |
+| Name           | Web-Template       |
+| AMI            | Ubuntu Server      |
+| Instance Type  | t2.micro           |
+| Key Pair       | Your Key Pair      |
+| Security Group | EC2 Security Group |
+
+---
+
+## Advanced Details → User Data
+
+Paste:
+
+```bash
+#!/bin/bash
+
+sudo apt update -y
+sudo apt install apache2 -y
+
+IP_ADDRESS=$(hostname -I | awk '{print $1}')
+HOSTNAME=$(hostname)
+
+cat <<EOF | sudo tee /var/www/html/index.html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Auto Scaling Demo Server</title>
+</head>
+<body>
+    <h1>Auto Scaling Demo Server</h1>
+    <h2>Hostname: $HOSTNAME</h2>
+    <h2>IP Address: $IP_ADDRESS</h2>
+</body>
+</html>
+EOF
+
+sudo systemctl start apache2
+sudo systemctl enable apache2
+```
+
+Create Launch Template.
+
+### Explanation
+
+Every new EC2 instance created by Auto Scaling will automatically install Apache and create a webpage.
+
+---
+
+# Step 9: Create Auto Scaling Group
+
+1. EC2 Dashboard.
+2. Auto Scaling Groups.
+3. Click **Create Auto Scaling Group**.
+
+---
+
+### Configure
+
+| Parameter       | Value        |
+| --------------- | ------------ |
+| Name            | Web-ASG      |
+| Launch Template | Web-Template |
+
+Click Next.
+
+---
+
+### Network
+
+Select:
+
+* AutoScaling-VPC
+* Public-Subnet-1
+* Public-Subnet-2
+
+Next.
+
+---
+
+### Attach Load Balancer
+
+Select:
+
+**Attach to Existing Load Balancer**
+
+Choose:
+
+* Existing Target Group
+* Web-TG
+
+Enable:
+
+✅ Turn On Elastic Load Balancing Health Checks
+
+Next.
+
+---
+
+### Group Size
+
+| Parameter        | Value |
+| ---------------- | ----- |
+| Desired Capacity | 2     |
+| Minimum Capacity | 1     |
+| Maximum Capacity | 3     |
+
+Next → Create Auto Scaling Group.
+
+### Explanation
+
+* Minimum = At least 1 EC2 always running
+* Desired = AWS tries to maintain 2 EC2s
+* Maximum = Can increase up to 3 EC2s
+
+---
+
+# Step 10: Verify Deployment
+
+Go to:
+
+EC2 → Instances
+
+You should see:
+
+* Instance 1
+* Instance 2
+
+Both launched automatically by ASG.
+
+Wait until:
+
+* Instance State = Running
+* Status Check = 2/2 Passed
+
+---
+
+# Step 11: Test Load Balancer
+
+1. EC2 → Load Balancers.
+2. Select Web-ALB.
+3. Copy DNS Name.
+
+Example:
+
+```text
+Web-ALB-123456.ap-south-1.elb.amazonaws.com
+```
+
+4. Open browser.
+5. Paste DNS.
+
+Output:
+
+```html
+Auto Scaling Demo Server
+```
+
+### Explanation
+
+Traffic is reaching the Load Balancer and being forwarded to EC2 instances.
+
+---
+
+# Step 12: Test Auto Scaling Recovery
+
+### Terminate One Instance
+
+1. EC2 Dashboard.
+2. Select one EC2 instance.
+3. Instance State → Terminate.
+
+Wait 2–5 minutes.
+
+---
+
+### Observe Auto Scaling
+
+Go to:
+
+EC2 → Auto Scaling Groups → Activity
+
+You will see:
+
+```text
+Instance terminated
+Launching replacement instance
+```
+
+A new EC2 instance is automatically created.
+
+### Explanation
+
+Since:
+
+```text
+Desired Capacity = 2
+```
+
+Auto Scaling immediately launches another instance to maintain the required count.
+
+---
+
+# Expected Result
+
+* VPC, Subnets, Route Table and IGW created.
+* Target Group and Application Load Balancer configured.
+* Launch Template created with Apache installation.
+* Auto Scaling Group launched EC2 instances automatically.
+* Load Balancer distributed traffic.
+* When one instance was terminated, Auto Scaling automatically launched a replacement instance.
+
+**Result:** AWS Auto Scaling Group was successfully created and demonstrated.
